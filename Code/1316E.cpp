@@ -30,21 +30,29 @@ int main() {
 	vector<vector<long long> > dp;
 	dp.resize(n + 1);
 	for(int i = 0; i <= n; ++i) {
-		dp[i].reize(1 << p, -inf);
+		dp[i].resize(1 << p, -inf);
 	}
 	dp[0][0] = 0;
+
 	for(int _ = 0; _ < n; ++_) {
 		int i = id[_];
+
+		dp[_ + 1] = dp[_];
+
 		for(int S = 0; S < 1 << p; ++S) {
-			if(i + 1 - __builtin_popcount(S) < k) {
-				dp[i + 1][S] = max(dp[i + 1][S], dp[i][S] + a[i]);
+			if(_ + 1 - __builtin_popcount(S) <= k) {
+				dp[_ + 1][S] = max(dp[_ + 1][S], dp[_][S] + a[i]);
 			}
 		}
 		for(int S = 0; S < 1 << p; ++S) {
-			int lowbit = S & (-S);
-			dp[i + 1][S] = max(dp[i + 1][S], dp[i][S ^ lowbit] + s[i][__builtin_ctz(lowbit)]);
+			for(int j = 0; j < p; ++j) {
+				if(!(S >> j & 1)) {
+					dp[_ + 1][S ^ (1 << j)] = max(dp[_ + 1][S ^ (1 << j)], dp[_][S] + s[i][j]);
+				}
+			}
 		}
 	}
-	cout << dp[n][(1 << k) - 1] << '\n';
+
+	cout << dp[n][(1 << p) - 1] << '\n';
 	return 0;
 }
