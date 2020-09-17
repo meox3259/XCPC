@@ -35,7 +35,7 @@ int main() {
 				if(v != f) {
 					dfs(v, u);
 					leaf[u] += leaf[v];
-					q.emplace(1LL * leaf[v] * (w + 1) / 2, w, leaf[v]);
+					q.emplace(1LL * (w + 1) / 2 * leaf[v], w, leaf[v]);
 					sum += 1LL * leaf[v] * w;
 				}
 			}
@@ -47,9 +47,9 @@ int main() {
 		while(sum > s) {
 			auto [d, w, l] = q.top();
 			q.pop();
-			sum -= 1LL * (w + 1) / 2 * l;
+			sum -= d;
 			w /= 2;
-			q.emplace((w + 1) / 2 * l, w, l);
+			q.emplace(1LL * (w + 1) / 2 * l, w, l);
 			ans += 1;
 		}
 
