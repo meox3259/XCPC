@@ -49,7 +49,7 @@ int main() {
 
 	if(p1 != -1 && p2 != -1) {
 		int v = query(p1, p2, 0); 	
-		Xor[0] ^= v;
+		Xor[0] = Xor[p1] ^ v;
 		for(int i = 1; i < n; ++i) {
 			Xor[i] ^= Xor[0];
 		}
@@ -59,7 +59,38 @@ int main() {
 		}
 		cout << endl;
 	} else {
-		
+		int a = 0;
+		int b = -1;
+		int c = -1;
+		for(int i = 1; i < n; ++i) {
+			if(Xor[i] == n - 1) {
+				b = i;
+			}
+		}		
+		for(int i = 1; i < n; ++i) {
+			if(i != b) {
+				c = i;
+			}
+		}
+		int axb = Xor[b];
+		int bxc = Xor[b] ^ Xor[c];
+		int cxa = Xor[c];
+		int aob = 0;
+		int boc = query(b, c, 0);
+		int coa = query(c, a, 0);
+		int ab = axb + aob * 2;
+		int bc = bxc + boc * 2;
+		int ca = cxa + coa * 2;
+		int sum = (ab + bc + ca) / 2;
+		Xor[0] = sum - bc;
+		for(int i = 1; i < n; ++i) {
+			Xor[i] ^= Xor[0];
+		}
+		cout << "!";
+		for(int i = 0; i < n; ++i) {
+			cout << ' ' << Xor[i];
+		}
+		cout << endl;
 	}
 
 	return 0;
