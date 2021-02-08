@@ -4,51 +4,64 @@ using namespace std;
 
 const int N = 1000005;
 
-struct dsu {
-    int a, b, fa, sizea, sizeb, da, db;
-    vector<int> dd;
-    dsu(int a = 0, int b = 0, int fa = 0, int sizea = 0, int sizeb = 0, int da = 0, int db = 0) : a(a), b(b), fa(fa), sizea(sizea), sizeb(sizeb) {}
-} st[N * 2];
-int n, m, top, T;
-int d[N], fa[N], Size[N];
-bool unite(pair<int, int> o)
-{
-    int u = o.first, v = o.second, du = 0, dv = 0;
-    while(fa[u] != u)
-    {
-        du ^= d[u];
-        u = fa[u];
+class rollbackdsu {
+    private:
+    vector<int> par;
+    vector<int> sz;
+    vector<int> d;
+    vector<tuple<int, int, int, int, int, int> > hist;
+    public:
+    rollbackdsu(int n) : par(n), sz(n, 1), d(n) {
+        iota(par.begin(), par.end(), 0);
     }
-    while(fa[v] != v)
-    {
-        dv ^= d[v];
-        v = fa[v];
+    int find(int x) {
+        while (x != par[x]) {
+            x = par[x];
+        }
+        return x;
     }
-    if(Size[u] < Size[v]) swap(u, v);
-    st[++top] = dsu(u, v, fa[v], Size[u], Size[v], d[u], d[v]);
-    if(u == v)
-    {
-        if(du == dv) return false;
+    bool same(int x, int y) {
+        return find(x) == find(y);
+    }
+    bool Union(int x, int y) {
+        int dx = 0;
+        while (par[x] != x) {
+            dx ^= d[x];
+            x = par[x];
+        }
+        int dy = 0;
+        while (par[y] != y) {
+            dy ^= d[y];
+            y = par[y];
+        }
+        if (x == y) {
+            return dx != dy;
+        }
+        if (sz[x] < sz[y]) {
+            swap(x, y);
+        }
+        hist.emplace_back(x, y, sz[x], sz[y], d[x], d[y]);
+        sz[x] += sz[y];
+        d[y] = dx ^ dy ^ 1;
+        par[y] = x;
         return true;
     }
-    Size[u] += Size[v];
-    d[v] = du ^ dv ^ 1;
-    fa[v] = u;
-    return true;
-}
-void del(int now)
-{
-    while(top != now)
-    {
-        dsu x = st[top];
-        Size[x.a] = x.sizea;
-        Size[x.b] = x.sizeb;
-        d[x.a] = x.da;
-        d[x.b] = x.db;
-        fa[x.b] = x.fa;
-        --top;
+    void clear() {
+        hist.clear();
     }
-}
+    void rollback() {
+        while (!hist.empty()) {
+            int x = get<0> (hist.back());
+            int y = get<1> (hist.back());
+            sz[x] = get<2> (hist.back());
+            sz[y] = get<3> (hist.back());
+            d[x] = get<4> (hist.back());
+            d[y] = get<5> (hist.back());
+            par[y] = y;
+            hist.pop_back();
+        } 
+    }
+};
 
 int main() {
     ios::sync_with_stdio(false);
@@ -66,11 +79,6 @@ int main() {
         c[i] --;
     }
 
-    for (int i = 0; i < n; ++i) {
-        fa[i] = i;
-        Size[i] = 1;
-    }
-
     vector<vector<int> > adj(n);
     vector<vector<int> > same(n);
     for (int i = 0; i < m; ++i) {
@@ -83,10 +91,11 @@ int main() {
     }
 
     vector<bool> ban(k);
+    rollbackdsu dsu(n);
     for (int i = 0; i < n; ++i) {
         for (int j : adj[i]) {
             if (c[i] == c[j]) {
-                if (!unite(make_pair(i, j))) {
+                if (!dsu.Union(i, j)) {
                     ban[c[i]] = true;
                 }
             }
@@ -117,13 +126,13 @@ int main() {
     for (auto &o : edge) {
         auto &vec = o.second;
         bool ok = true; 
-        int now = top;
+        dsu.clear();
         for (auto [x, y] : vec) {
-            if (!unite(make_pair(x, y))) {
+            if (!dsu.Union(x, y)) {
                 ok = false;
             }
         }
-        del(now);
+        dsu.rollback();
         if (!ok) {
             ans --;
         }
