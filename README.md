@@ -1,5 +1,5 @@
-# ACM
-Code of ACM since 2019.12
+# ICPC
+Code of ICPC since 2019.12
 
 Code - All Code
 
